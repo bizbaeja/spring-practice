@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.msa2024.hello2.board.BoardMapper">
+	<!--
+    테이블 스크립트
+    CREATE TABLE `tb_board_file` (
+        `board_file_id` INT(11) NOT NULL AUTO_INCREMENT,
+        `bno` INT(11) NOT NULL ,
+        `original_filename` VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+        `real_filename` VARCHAR(800) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+        `content_type` VARCHAR(100) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+        `size` BIGINT(20) NULL DEFAULT NULL,
+        `make_date` DATETIME NULL DEFAULT current_timestamp(),
+        PRIMARY KEY (`board_file_id`) USING BTREE
+    )
+    ENGINE=InnoDB
+    ;
+     -->
+	<sql id="search">
+		<where>
+			<if test="searchKey != null and searchKey != ''">
+				btitle like concat('%', #{searchKey}, '%')
+			</if>
+		</where>
+	</sql>
+
+
+	<select id="getList" resultType="BoardVO">
+		select
+		b.*, m.member_name bwriter
+		from tb_board b inner join tb_member m on b.member_id = m.member_id
+		<include refid="search"/>
+		order by bno desc limit #{skip}, #{size}
+	</select>
+
+	<select id="getTotalCount" resultType="int">
+		select
+		count(*)
+		from tb_board
+		<include refid="search"/>
+	</select>
+
+	<select id="view" resultType="BoardVO">
+		select
+			b.*, m.member_name bwriter
+		from tb_board b inner join tb_member m on b.member_id = m.member_id
+		where bno = #{bno}
+	</select>
+
+	<update id="incViewCount" >
+		update tb_board set
+			view_count = view_count + 1
+		where bno = #{bno}
+	</update>
+
+	<delete id="delete" >
+		delete
+		from tb_board
+		where bno = #{bno}
+	</delete>
+
+	<update id="update" >
+		update tb_board set
+							btitle   = #{btitle},
+							bcontent = #{bcontent}
+		where bno = #{bno}
+	</update>
+
+	<delete id="allDelete" >
+		delete
+		from tb_board
+	</delete>
+
+	<insert id="insert" >
+		<selectKey order="AFTER" keyProperty="bno" resultType="String">
+			select LAST_INSERT_ID()
+		</selectKey>
+		insert into tb_board (
+		btitle,
+		bcontent,
+		member_id
+		) values (
+		#{btitle},
+		#{bcontent},
+		#{member_id}
+		)
+	</insert>
+
+</mapper>
